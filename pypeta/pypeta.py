@@ -49,11 +49,7 @@ class Peta(object):
         self.data_restriction = {
             "studyIds": ["chol_nus_2012"],
             "attributesRangeFilters": [],
-            "attributesEqualFilters": [{
-                "attributeId": "OS_STATUS",
-                "attributeType": "PATIENT",
-                "values": ["ALIVE"]
-            }],
+            "attributesEqualFilters": [],
             "mutationFilter": {
                 "hugoGeneSymbols": [],
                 "exacStart": 0,
@@ -67,7 +63,11 @@ class Peta(object):
                 "sequencerSource": []
             },
             "cnvFilter": {},
-            "svFilter": {}
+            "svFilter": {},
+            "pageIndex":
+            1,
+            "pageSize":
+            999999,
         }
 
     # 4 feteh data interface, including clinical, mutation, cnv and sv. return dataframe
@@ -105,7 +105,7 @@ class Peta(object):
 
             dfs.append(df)
 
-        return pd.concat(dfs)
+        return pd.concat(dfs, sort=True)
 
     def fetch_cnv_data(self):
         url = 'https://peta.bgi.com/api/peta/mutation/getCNVData'
@@ -118,7 +118,12 @@ class Peta(object):
     # list all the studys current user can see
     def list_visible_studys(self):
         r = requests.post('https://peta.bgi.com/api/peta/home/getStudies',
-                          data=json.dumps({"name":"","parentType":[],"groups":[],"tags":[]}),
+                          data=json.dumps({
+                              "name": "",
+                              "parentType": [],
+                              "groups": [],
+                              "tags": []
+                          }),
                           cookies=self.cookies,
                           headers=self.headers)
         if r.status_code != 200:
@@ -126,19 +131,20 @@ class Peta(object):
         elif re.findall(r'"responseCode":"-2"', r.text):  # 这里可能需要做单独的处理
             raise FetchError(self.data_restriction)
         else:
-            study_list_json=json.loads(r.text)
+            study_list_json = json.loads(r.text)
 
-            dfs=[]
+            dfs = []
             for cancer_type in study_list_json['data']:
 
-                for cancer_type_detail in study_list_json['data'][cancer_type]['studies']:
-                    df=pd.DataFrame(study_list_json['data'][cancer_type]['studies'][cancer_type_detail]['data'])
-                    df['cancerType']=cancer_type
-                    df['cancerTypeDetail']=cancer_type_detail
+                for cancer_type_detail in study_list_json['data'][cancer_type][
+                        'studies']:
+                    df = pd.DataFrame(study_list_json['data'][cancer_type]
+                                      ['studies'][cancer_type_detail]['data'])
+                    df['cancerType'] = cancer_type
+                    df['cancerTypeDetail'] = cancer_type_detail
                     dfs.append(df)
 
-            return pd.concat(dfs,sort=True)
-
+            return pd.concat(dfs, sort=True)
 
     # select studys
     def select_studys(self, study_ids: list = []):

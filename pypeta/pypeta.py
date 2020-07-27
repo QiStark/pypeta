@@ -6,6 +6,7 @@ import pandas as pd
 from collections import defaultdict
 import requests
 import json
+import time
 
 
 class AccountError(RuntimeError):
@@ -26,19 +27,31 @@ class FetchError(RuntimeError):
 
 class Peta(object):
     '''peta code interface class'''
-    def __init__(self, username: str, password: str):
+    def __init__(self, username: str = '', password: str = '',
+                 token: str = ''):
         '''
         login
         '''
-        data = {'name': username, 'password': password}
-        r = requests.post('https://peta.bgi.com/api/peta/user/getticket',
-                          data=data)
-        if r.status_code != 200:
-            raise NetworkError('login')
-        elif r.text == '{}':
-            raise AccountError(username, 'Error in username or password')
+        if token:
+            jar = requests.cookies.RequestsCookieJar()
+            jar.set('token', token)
+            self.cookies = jar
+        elif username and password:
+            data = {'name': username, 'password': password}
+            r = requests.post('https://peta.bgi.com/api/peta/user/getticket',
+                              data=data)
+            if r.status_code != 200:
+                raise NetworkError('login')
+            elif r.text == '{}':
+                raise AccountError(
+                    username,
+                    'Failed to access PETA. Error in username or password')
+            else:
+                self.cookies = r.cookies
         else:
-            self.cookies = r.cookies
+            raise AccountError(
+                ' Please specify token or username with password to access PETA'
+            )
 
         self.headers = {
             "User-Agent":
@@ -64,11 +77,19 @@ class Peta(object):
             },
             "cnvFilter": {},
             "svFilter": {},
-            "pageIndex":
-            1,
-            "pageSize":
-            999999,
+            "pageIndex": 1,
+            "pageSize": 999999,
         }
+
+    def set_data_restriction_from_json_file(self, json_file: str):
+        ''''''
+        with open(json_file) as jsonin:
+            data_restriction = json.load(jsonin)
+            self.data_restriction = data_restriction
+
+    def set_data_restriction_from_json_string(self, json_string: str):
+        ''''''
+        self.data_restriction = json.loads(json_string)
 
     # 4 feteh data interface, including clinical, mutation, cnv and sv. return dataframe
     def _fetch_data(self, url: str):
@@ -91,29 +112,56 @@ class Peta(object):
     def fetch_clinical_data(self):
         url = 'https://peta.bgi.com/api/peta/clinical/sampleClinicalData'
 
-        samples_data = pd.read_json(self._fetch_data(url)).iloc[1, 0]
+        #print("http start")
+        #print(time.asctime())
+        fetched_json = self._fetch_data(url)
+        #print("http end\nread json start")
+        #print(time.asctime())
+        json_dict = json.loads(fetched_json)
+        #print("read json end\ntable start")
+        #print(time.asctime())
 
-        dfs = []
-        for sample_record in samples_data:
-            sampleId = sample_record['sampleId']
-            patientId = sample_record['patientId']
+        samples_dict = json_dict['data']['samples']
 
-            df = pd.DataFrame(
-                sample_record['clinicalData']).set_index('attrId').T.iloc[0:1]
-            df['patientId'] = patientId
-            df['sampleId'] = sampleId
+        target_samples_list = []
+        for sample_dict in samples_dict:
 
-            dfs.append(df)
+            target_sample_dict = {}
+            for key, value in sample_dict.items():
+                if key == 'clinicalData':
+                    attr_dict_list = sample_dict['clinicalData']
+                    for attr_dict in attr_dict_list:
+                        for sub_key, sub_value in attr_dict.items():
+                            target_sample_dict[
+                                attr_dict['attrId']] = attr_dict['attrValue']
+                else:
+                    target_sample_dict[key] = value
 
-        return pd.concat(dfs, sort=True)
+            target_samples_list.append(target_sample_dict)
+
+        df = pd.DataFrame(target_samples_list)
+
+        #print("table end\n")
+        #print(time.asctime())
+
+        return df
 
     def fetch_cnv_data(self):
+        return None
         url = 'https://peta.bgi.com/api/peta/mutation/getCNVData'
         return self._fetch_data(url)
 
     def fetch_sv_data(self):
+        return None
         url = 'https://peta.bgi.com/api/peta/mutation/getSVData'
         return self._fetch_data(url)
+
+    def fetch(self):
+        '''fetch all info of the selected samples'''
+        return [
+            self.fetch_clinical_data(),
+            self.fetch_mutation_data(), self.fetch_cnv_data, self.fetch_sv_data
+        ]
 
     # list all the studys current user can see
     def list_visible_studys(self):
@@ -180,3 +228,30 @@ class Peta(object):
 
     def analysises(self):
         pass
+
+    # 辅助函数
+    def maf_to_yj(self):
+        hzm = self.fetch_mutation_data()
+        hzm = hzm[[
+            'Tumor_Sample_Barcode', 'Hugo_Symbol', 'Chromosome',
+            'Reference_Allele', 'Tumor_Seq_Allele2', 'Start_Position',
+            'End_Position'
+        ]]
+        hzm = hzm.rename(
+            columns={
+                'Tumor_Sample_Barcode': 'SampleId',
+                'Hugo_Symbol': 'Gene',
+                'Chromosome': 'CHR',
+                'Reference_Allele': 'REF',
+                'Tumor_Seq_Allele2': 'ALT',
+            })
+        hzm['HGVSp'] = np.nan
+        hzm['Case_Read1'] = 1
+        hzm['Case_Read2'] = 1
+        hzm['Case_Var_Freq'] = 1
+        hzm = hzm.reindex(columns=[
+            'SampleId', 'Gene', 'HGVSp', 'CHR', 'REF', 'ALT', 'Start_Position',
+            'End_Position', 'Case_Read1', 'Case_Read2', 'Case_Var_Freq'
+        ])
+
+        return hzm

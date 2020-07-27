@@ -9,13 +9,13 @@ setup(
     author_email = 'liujilong@genomics.cn',
 
     name = 'pypeta',
-    version = '0.1',
+    version = '0.2',
     description='BGI-PETA data APIs',
     long_description=readme(),
     url='https://github.com/JaylanLiu/pepeta',
 
     packages = find_packages(),
-    install_requires=['pandas','numpy'],
+    install_requires=['pandas','numpy','requests'],
 
     classifiers=[
         'Development Status :: 3 - Alpha',

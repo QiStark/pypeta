@@ -9,7 +9,7 @@ setup(
     author_email = 'liujilong@genomics.cn',
 
     name = 'pypeta',
-    version = '0.2',
+    version = '0.3',
     description='BGI-PETA data APIs',
     long_description=readme(),
     long_description_content_type='text/markdown',

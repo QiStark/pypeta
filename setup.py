@@ -12,6 +12,7 @@ setup(
     version = '0.2',
     description='BGI-PETA data APIs',
     long_description=readme(),
+    long_description_content_type='text/markdown',
     url='https://github.com/JaylanLiu/pepeta',
 
     packages = find_packages(),

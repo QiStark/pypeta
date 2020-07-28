@@ -101,7 +101,7 @@ class Peta(object):
         if r.status_code != 200:
             raise NetworkError('fetch data')
         elif re.findall(r'"responseCode":"-2"', r.text):
-            raise FetchError
+            raise FetchError(r.text)
         else:
             return r.text
 

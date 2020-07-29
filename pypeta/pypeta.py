@@ -28,17 +28,18 @@ class FetchError(RuntimeError):
 class Peta(object):
     '''peta code interface class'''
     def __init__(self, username: str = '', password: str = '',
-                 token: str = ''):
+                 token: str = '', host: str='https://peta.bgi.com/api'):
         '''
         login
         '''
+        self.host=host.strip('/')
         if token:
             jar = requests.cookies.RequestsCookieJar()
             jar.set('token', token)
             self.cookies = jar
         elif username and password:
             data = {'name': username, 'password': password}
-            r = requests.post('https://peta.bgi.com/api/peta/user/getticket',
+            r = requests.post(f'{self.host}/peta/user/getticket',
                               data=data)
             if r.status_code != 200:
                 raise NetworkError('login')
@@ -106,11 +107,11 @@ class Peta(object):
             return r.text
 
     def fetch_mutation_data(self):
-        url = 'https://peta.bgi.com/api/peta/mutation/getMAFData'
+        url = f'{self.host}/peta/mutation/getMAFData'
         return pd.read_json(self._fetch_data(url))
 
     def fetch_clinical_data(self):
-        url = 'https://peta.bgi.com/api/peta/clinical/sampleClinicalData'
+        url = f'{self.host}/peta/clinical/sampleClinicalData'
 
         #print("http start")
         #print(time.asctime())
@@ -148,12 +149,12 @@ class Peta(object):
 
     def fetch_cnv_data(self):
         return None
-        url = 'https://peta.bgi.com/api/peta/mutation/getCNVData'
+        url = f'{self.host}/peta/mutation/getCNVData'
         return self._fetch_data(url)
 
     def fetch_sv_data(self):
         return None
-        url = 'https://peta.bgi.com/api/peta/mutation/getSVData'
+        url = f'{self.host}/peta/mutation/getSVData'
         return self._fetch_data(url)
 
     def fetch(self):
@@ -165,7 +166,7 @@ class Peta(object):
 
     # list all the studys current user can see
     def list_visible_studys(self):
-        r = requests.post('https://peta.bgi.com/api/peta/home/getStudies',
+        r = requests.post(f'{self.host}/peta/home/getStudies',
                           data=json.dumps({
                               "name": "",
                               "parentType": [],

@@ -1,7 +1,7 @@
 from setuptools import setup,find_packages
 
 def readme():
-    with open('README.md','r') as fh:
+    with open('README.MD','r') as fh:
         return fh.read()
         
 setup(
@@ -9,7 +9,7 @@ setup(
     author_email = 'liujilong@genomics.cn',
 
     name = 'pypeta',
-    version = '0.3',
+    version = '0.4',
     description='BGI-PETA data APIs',
     long_description=readme(),
     long_description_content_type='text/markdown',

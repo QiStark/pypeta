@@ -27,20 +27,22 @@ class FetchError(RuntimeError):
 
 class Peta(object):
     '''peta code interface class'''
-    def __init__(self, username: str = '', password: str = '',
-                 token: str = '', host: str='https://peta.bgi.com/api'):
+    def __init__(self,
+                 username: str = '',
+                 password: str = '',
+                 token: str = '',
+                 host: str = 'https://peta.bgi.com/api'):
         '''
         login
         '''
-        self.host=host.strip('/')
+        self.host = host.strip('/')
         if token:
             jar = requests.cookies.RequestsCookieJar()
             jar.set('token', token)
             self.cookies = jar
         elif username and password:
             data = {'name': username, 'password': password}
-            r = requests.post(f'{self.host}/peta/user/getticket',
-                              data=data)
+            r = requests.post(f'{self.host}/peta/user/getticket', data=data)
             if r.status_code != 200:
                 raise NetworkError('login')
             elif r.text == '{}':
@@ -256,3 +258,41 @@ class Peta(object):
         ])
 
         return hzm
+
+    def curated_status_of_sample_ids(self,
+                                     query_ids: list = [],
+                                     fuzzy_match: bool = False,
+                                     get_existed: bool = False):
+        '''屎一样的需求带来的屎一样的代码'''
+        curated_cli = self.fetch_clinical_data()
+        curated_ids = curated_cli['sampleId']
+
+        query_ids_dict = {x: x for x in query_ids}
+
+        if fuzzy_match:
+
+            def bgi_sample_id_norm(id_in: str):
+                id_sep = re.findall(r'(\d+)[A-Z](\d+)', id_in)[0]
+                return ''.join([id_sep[0], 'S', id_sep[1]])
+
+            curated_ids = curated_ids.map(lambda x: bgi_sample_id_norm(x))
+            query_ids_dict = {bgi_sample_id_norm(x): x for x in query_ids}
+
+        if get_existed:
+            cli = curated_cli.iloc[curated_ids[curated_ids.isin(
+                query_ids_dict.keys())].index]
+            curated_mut = self.fetch_mutation_data()
+            mut = curated_mut[curated_mut['Tumor_Sample_Barcode'].isin(
+                cli['sampleId'])]
+
+            return (cli, mut)
+
+        yes = [
+            query_ids_dict[x]
+            for x in (set(query_ids_dict.keys()) & set(curated_ids))
+        ]
+        no = [
+            query_ids_dict[x]
+            for x in (set(query_ids_dict.keys()) - set(curated_ids))
+        ]
+        return (yes, no)

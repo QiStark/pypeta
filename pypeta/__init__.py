@@ -1,8 +1,4 @@
 from .pypeta import *
+from .utils import *
 
-def test():
-    print('test is ok')
-
-
-if __name__ == '__main__':
-    test()
+__version__ = '0.1.6'

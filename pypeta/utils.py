@@ -66,6 +66,11 @@ def mut_freq_per_gene(maf_df: pd.DataFrame,
 
 
 def filter_description(json_str: str):
+    """Parse Peta restricts as literal description
+
+    Args:
+        json_str (str): string format Peta restricts
+    """
     filter_dict = json.loads(json_str)
     print(f'选取的研究数据集包括', end='')
     print(*filter_dict['studyIds'], sep=',', end='')

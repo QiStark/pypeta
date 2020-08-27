@@ -32,7 +32,7 @@ setup(author='JaylanLiu',
       long_description_content_type='text/markdown',
       url='https://github.com/JaylanLiu/pepeta',
       packages=find_packages(),
-      install_requires=['pandas', 'numpy', 'requests'],
+      install_requires=['pandas', 'numpy', 'requests','hgvs'],
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Intended Audience :: Developers',

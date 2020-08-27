@@ -1,7 +1,6 @@
 import hgvs.parser
 import hgvs.assemblymapper
 import hgvs.dataproviders.uta
-import hgvs.sequencevariant.SequenceVariant
 import pandas as pd
 import re
 

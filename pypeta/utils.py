@@ -5,7 +5,14 @@ import json
 
 
 def is_float(string: str = '') -> bool:
-    '''return True if a string can be converted to float'''
+    """Return True if the input string can be a float number
+
+    Args:
+        string (str, optional): input string. Defaults to ''.
+
+    Returns:
+        bool: return True if the input string can be converted to float 
+    """
     try:
         float(string)
         return True
@@ -14,10 +21,17 @@ def is_float(string: str = '') -> bool:
 
 
 def restrict_series_value_counts_to_designated_records(ser: pd.Series,
-                                                       limit: int = 20):
-    '''
-    组合的index用什么和列标签的命名需要考虑中英文
-    '''
+                                                       limit: int = 20
+                                                       ) -> pd.DataFrame:
+    """Cut a long pandas Series to degisted records, the remain records will be aggregated in the 'Others' record.
+
+    Args:
+        ser (pd.Series): The long pandas Series to be processed
+        limit (int, optional): Records number intended to be reamined. Defaults to 20.
+
+    Returns:
+        pd.DataFrame: processed records with the input Series`s index as the first column
+    """
     length = len(ser)
     if length > limit:
         thres = limit - 1
@@ -31,7 +45,16 @@ def restrict_series_value_counts_to_designated_records(ser: pd.Series,
     return df
 
 
-def positive_rate(values: list, positive_tags: list):
+def positive_rate(values: list, positive_tags: list) -> tuple:
+    """Calculate positive tags marked values percentage in the total ones
+
+    Args:
+        values (list): the total values
+        positive_tags (list): values that are regarded as positive values
+
+    Returns:
+        tuple: tuple for total values number, effective values number and percentage of positive values in the input values
+    """
     values = list(values)
 
     total_value_num = len(values)
@@ -46,8 +69,20 @@ def positive_rate(values: list, positive_tags: list):
 
 def mut_freq_per_gene(maf_df: pd.DataFrame,
                       cnv_df: pd.DataFrame = pd.DataFrame([]),
-                      sv_df: pd.DataFrame = pd.DataFrame([])):
-    '''使用计算每个基因在群体中的突变频率'''
+                      sv_df: pd.DataFrame = pd.DataFrame([])) -> pd.Series:
+    """Calculate variation frequency for each Gene in the input data set
+
+    Args:
+        maf_df (pd.DataFrame): maf records for SNV and InDel variations
+        cnv_df (pd.DataFrame, optional): cnv records. Defaults to pd.DataFrame([]).
+        sv_df (pd.DataFrame, optional): SV/Fusion/Gene rearrengement record. Defaults to pd.DataFrame([]).
+
+    Raises:
+        ValueError: input data set has no records
+
+    Returns:
+        pd.Series: variation freq for each Gene
+    """
     mut_df = maf_df[['Tumor_Sample_Barcode', 'Hugo_Symbol']]
     mut_df.columns = pd.Index(['Sample_ID', 'Hugo_Symbol'])
 
@@ -65,13 +100,22 @@ def mut_freq_per_gene(maf_df: pd.DataFrame,
     ) / samples_num
 
 
-def filter_description(json_str: str):
+def filter_description(json_str: str) -> str:
     """Parse Peta restricts as literal description
 
     Args:
         json_str (str): string format Peta restricts
+
+    Returns:
+        str: literal description
     """
     filter_dict = json.loads(json_str)
+
+    literal_description = ''
+    literal_description += f'选取的研究数据集包括'
+    literal_description += ','.join(*filter_dict['studyIds'])
+    literal_description += '。'
+
     print(f'选取的研究数据集包括', end='')
     print(*filter_dict['studyIds'], sep=',', end='')
     print('。')
@@ -83,6 +127,11 @@ def filter_description(json_str: str):
               *attributesRangeFilters,
               *attributesEqualFilters,
               sep=',')
+
+        literal_description += ','.join(*attributesRangeFilters,
+                                        *attributesEqualFilters)
+
+    return literal_description
 
 
 def get_certain_file_type_from_certain_depth_folders(root_dir: str,

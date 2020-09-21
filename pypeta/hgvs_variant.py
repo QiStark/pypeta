@@ -740,7 +740,7 @@ class Hgvs_variant():
         """get ghgvs
 
         Returns:
-            [type]: [description]
+            str: [description]
         """
         return str(self.var_g)
 

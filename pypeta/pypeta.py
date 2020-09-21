@@ -228,7 +228,6 @@ class Peta(object):
         '''
         pass
 
-
     # 多种分析 整合到一起
 
     # from json
@@ -268,8 +267,18 @@ class Peta(object):
     def curated_status_of_sample_ids(self,
                                      query_ids: list = [],
                                      fuzzy_match: bool = False,
-                                     get_existed: bool = False):
-        '''屎一样的需求带来的屎一样的代码'''
+                                     get_existed: bool = False) -> tuple:
+        """query and fetch records from selected studies in PETA using a list of sample ids 
+
+        Args:
+            query_ids (list, optional): target sample ids. Defaults to [].
+            fuzzy_match (bool, optional): True for fuzzy match enabled. Defaults to False.
+            get_existed (bool, optional): True for fetch the existed records. Defaults to False.
+
+        Returns:
+            tuple: return existed records if get_existed is True, otherwise, return existed and not-existed lists of sample ids 
+        """
+
         curated_cli = self.fetch_clinical_data()
         curated_ids = curated_cli['sampleId']
 

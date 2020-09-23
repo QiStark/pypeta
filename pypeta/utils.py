@@ -113,23 +113,14 @@ def filter_description(json_str: str) -> str:
 
     literal_description = ''
     literal_description += f'选取的研究数据集包括'
-    literal_description += ','.join(*filter_dict['studyIds'])
+    literal_description += ','.join([*filter_dict['studyIds']])
     literal_description += '。'
-
-    print(f'选取的研究数据集包括', end='')
-    print(*filter_dict['studyIds'], sep=',', end='')
-    print('。')
 
     attributesRangeFilters = filter_dict['attributesRangeFilters']
     attributesEqualFilters = filter_dict['attributesEqualFilters']
     if attributesRangeFilters or attributesEqualFilters:
-        print('样本过滤条件为',
-              *attributesRangeFilters,
-              *attributesEqualFilters,
-              sep=',')
-
-        literal_description += ','.join(*attributesRangeFilters,
-                                        *attributesEqualFilters)
+        literal_description += ','.join([*attributesRangeFilters,
+                                        *attributesEqualFilters])
 
     return literal_description
 

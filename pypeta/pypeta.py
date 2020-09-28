@@ -287,7 +287,7 @@ class Peta(object):
         if fuzzy_match:
 
             def bgi_sample_id_norm(id_in: str):
-                id_sep = re.findall(r'(\d+)[A-Z](\d+)', id_in)[0]
+                id_sep = re.findall(r'(\d+)[A-Za-z](\d+)', id_in)[0]
                 return ''.join([id_sep[0], 'S', id_sep[1]])
 
             curated_ids = curated_ids.map(lambda x: bgi_sample_id_norm(x))

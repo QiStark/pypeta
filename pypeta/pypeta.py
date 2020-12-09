@@ -150,20 +150,20 @@ class Peta(object):
         return df
 
     def fetch_cnv_data(self):
-        return None
         url = f'{self.host}/peta/mutation/getCNVData'
-        return self._fetch_data(url)
+        return pd.read_json(self._fetch_data(url))
 
     def fetch_sv_data(self):
-        return None
-        url = f'{self.host}/peta/mutation/getSVData'
-        return self._fetch_data(url)
+        url = f'{self.host}/peta/mutation/getFusionData'
+        return pd.read_json(self._fetch_data(url))
 
     def fetch(self):
         '''fetch all info of the selected samples'''
         return [
             self.fetch_clinical_data(),
-            self.fetch_mutation_data(), self.fetch_cnv_data, self.fetch_sv_data
+            self.fetch_mutation_data(),
+            self.fetch_cnv_data(),
+            self.fetch_sv_data()
         ]
 
     # list all the studys current user can see

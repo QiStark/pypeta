@@ -166,6 +166,10 @@ class Peta(object):
             self.fetch_sv_data()
         ]
 
+    def get_gene_mutate_rate(self):
+        url = f'{self.host}/peta/summary/clinical-data/mutatedGene'
+        return pd.DataFrame(json.loads(self._fetch_data(url))['data'])
+
     # list all the studys current user can see
     def list_visible_studys(self):
         r = requests.post(f'{self.host}/peta/home/getStudies',

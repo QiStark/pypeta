@@ -100,6 +100,21 @@ def mut_freq_per_gene(maf_df: pd.DataFrame,
     ) / samples_num
 
 
+def construct_description(prefix: str, suffix: str, items: list):
+    """Construction of complete description with prefix and suffixx. 
+
+    Args:
+        prefix (str): prefix
+        suffix (str): suffix
+        items (list): itesm
+
+    Returns:
+        str: complete description string
+    """
+    item_str = '，'.join(items)
+    return f'{prefix}{item_str}{suffix}'
+
+
 def filter_description(json_str: str) -> str:
     """Parse Peta restricts as literal description
 
@@ -111,16 +126,93 @@ def filter_description(json_str: str) -> str:
     """
     filter_dict = json.loads(json_str)
 
+    # study ids
     literal_description = ''
-    literal_description += f'选取的研究数据集包括'
-    literal_description += ','.join([*filter_dict['studyIds']])
-    literal_description += '。'
+    literal_description += construct_description('选取的研究数据集包括', '。\n',
+                                                 filter_dict['studyIds'])
 
-    attributesRangeFilters = filter_dict['attributesRangeFilters']
-    attributesEqualFilters = filter_dict['attributesEqualFilters']
-    if attributesRangeFilters or attributesEqualFilters:
-        literal_description += ','.join([*attributesRangeFilters,
-                                        *attributesEqualFilters])
+    # attributesRangeFilters
+    if filter_dict['attributesRangeFilters']:
+        arf_des = []
+        prefix = ''
+        suffix = '。'
+        for attr_dict in filter_dict['attributesRangeFilters']:
+            attr_id = attr_dict['attributeId']
+            attr_describe = ''
+            attr_records = []
+            for extent in attr_dict['ranges']:
+                attr_records.append(f"从{extent['start']}到{extent['end']}")
+            attr_describe = '，'.join(attr_records)
+
+            attr_describe = f"{attr_id}的范围是{attr_describe}"
+
+            arf_des.append(attr_describe)
+        literal_description += construct_description('', '。\n', arf_des)
+
+    # attributesDateFilters
+    if filter_dict['attributesDateFilters']:
+        arf_des = []
+        prefix = ''
+        suffix = '。'
+        for attr_dict in filter_dict['attributesDateFilters']:
+            attr_id = attr_dict['attributeId']
+            attr_describe = ''
+            attr_records = []
+            for extent in attr_dict['ranges']:
+                attr_records.append(f"从{extent['start']}到{extent['end']}")
+            attr_describe = '，'.join(attr_records)
+
+            attr_describe = f"{attr_id}的范围是{attr_describe}"
+
+            arf_des.append(attr_describe)
+        literal_description += construct_description('', '。\n', arf_des)
+
+    # attributesEqualFilters
+    if filter_dict['attributesEqualFilters']:
+        arf_des = []
+        prefix = ''
+        suffix = '。'
+        for attr_dict in filter_dict['attributesEqualFilters']:
+            attr_id = attr_dict['attributeId']
+            attr_describe = ''
+            attr_records = '，'.join(attr_dict['values'])
+            arf_des.append(f"{attr_id}包含{attr_records}")
+
+        literal_description += construct_description('', '。\n', arf_des)
+
+    # mutationFilter
+    mutationFilter = filter_dict['mutationFilter']
+    mf_des = []
+    if mutationFilter['hugoGeneSymbols']:
+        gene_desc = '，'.join(mutationFilter['hugoGeneSymbols'])
+        mf_des.append(f"考察的基因包括{gene_desc}")
+
+    if mutationFilter['exacStart'] != 0 or mutationFilter['exadEnd'] != 1:
+        mf_des.append(
+            f"ExAC数据库中记录的频率为从{mutationFilter['exacStart']}到{mutationFilter['exadEnd']}"
+        )
+
+    if mutationFilter['vabundStart'] != 0 or mutationFilter['vabundEnd'] != 1:
+        mf_des.append(
+            f"变异丰度的范围从{mutationFilter['vabundStart']}到{mutationFilter['vabundEnd']}"
+        )
+
+    if mutationFilter['variantSource']:
+        vs_desc = '，'.join(mutationFilter['variantSource'])
+        mf_des.append(f"变异水平包括{vs_desc}")
+
+    if mutationFilter['variantType']:
+        vt_desc = '，'.join(mutationFilter['variantType'])
+        mf_des.append(f"变异类型包括{vt_desc}")
+
+    if mutationFilter['variantClass']:
+        vc_desc = '，'.join(mutationFilter['variantClass'])
+        mf_des.append(f"变异分类包括{vc_desc}")
+
+    if mutationFilter['searchStr']:
+        mf_des.append(f"指定的变异为{mutationFilter['searchStr']}")
+
+    literal_description += construct_description('', '。\n', mf_des)
 
     return literal_description
 

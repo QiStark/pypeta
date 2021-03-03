@@ -102,7 +102,7 @@ class Peta(object):
                           cookies=self.cookies,
                           headers=self.headers)
         if r.status_code != 200:
-            raise NetworkError('fetch data')
+            raise NetworkError('fetch data'+ r.text)
         elif re.findall(r'"responseCode":"-2"', r.text):
             raise FetchError(r.text)
         else:

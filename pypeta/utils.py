@@ -212,7 +212,8 @@ def filter_description(json_str: str) -> str:
     if mutationFilter['searchStr']:
         mf_des.append(f"指定的变异为{mutationFilter['searchStr']}")
 
-    literal_description += construct_description('', '。\n', mf_des)
+    if mf_des:
+        literal_description += construct_description('', '。\n', mf_des)
 
     return literal_description
 

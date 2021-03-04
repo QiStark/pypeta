@@ -68,6 +68,7 @@ def positive_rate(values: list, positive_tags: list) -> tuple:
 
 
 def mut_freq_per_gene(maf_df: pd.DataFrame,
+                      cli_df: pd.DataFrame,
                       cnv_df: pd.DataFrame = pd.DataFrame([]),
                       sv_df: pd.DataFrame = pd.DataFrame([])) -> pd.Series:
     """Calculate variation frequency for each Gene in the input data set
@@ -84,15 +85,18 @@ def mut_freq_per_gene(maf_df: pd.DataFrame,
         pd.Series: variation freq for each Gene
     """
     mut_df = maf_df[['Tumor_Sample_Barcode', 'Hugo_Symbol']]
-    mut_df.columns = pd.Index(['Sample_ID', 'Hugo_Symbol'])
 
-    if len(cnv_df) == 0:
-        pass
+    if len(cnv_df) != 0:
+        cnv_df = cnv_df[['Tumor_Sample_Barcode', 'Hugo_Symbol']]
+        mut_df = pd.concat([mut_df, cnv_df])
 
     if len(sv_df) == 0:
         pass
 
-    samples_num = len(mut_df.Sample_ID.drop_duplicates())
+    mut_df.columns = pd.Index(['Sample_ID', 'Hugo_Symbol'])
+
+    #samples_num = len(mut_df.Sample_ID.drop_duplicates())
+    samples_num = len(cli_df)
     if samples_num == 0:
         raise ValueError
 

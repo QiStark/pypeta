@@ -118,7 +118,6 @@ def construct_description(prefix: str, suffix: str, items: list):
     item_str = '，'.join(items)
     return f'{prefix}{item_str}{suffix}'
 
-
 def filter_description(json_str: str) -> str:
     """Parse Peta restricts as literal description
 
@@ -190,36 +189,47 @@ def filter_description(json_str: str) -> str:
     if mutationFilter['hugoGeneSymbols']:
         gene_desc = '，'.join(mutationFilter['hugoGeneSymbols'])
         mf_des.append(f"考察的基因包括{gene_desc}")
-
-    if mutationFilter['exacStart'] != 0 or mutationFilter['exadEnd'] != 1:
-        mf_des.append(
-            f"ExAC数据库中记录的频率为从{mutationFilter['exacStart']}到{mutationFilter['exadEnd']}"
-        )
-
-    if mutationFilter['vabundStart'] != 0 or mutationFilter['vabundEnd'] != 1:
-        mf_des.append(
-            f"变异丰度的范围从{mutationFilter['vabundStart']}到{mutationFilter['vabundEnd']}"
-        )
-
+        
+    if mutationFilter['mutationType']:
+        gene_desc = '，'.join(mutationFilter['mutationType'])
+        mf_des.append(f"突变类型包括{gene_desc}")
+        
     if mutationFilter['variantSource']:
         vs_desc = '，'.join(mutationFilter['variantSource'])
         mf_des.append(f"变异水平包括{vs_desc}")
+        
+    if mutationFilter['hasDrug']:
+        vs_desc = '，'.join(mutationFilter['hasDrug'])
+        mf_des.append(f"变异与药物关联关系包括{vs_desc}")
+        
+    if mutationFilter['clinsig']:
+        vs_desc = '，'.join(mutationFilter['clinsig'])
+        mf_des.append(f"变异影响包括{vs_desc}")
 
-    if mutationFilter['variantType']:
-        vt_desc = '，'.join(mutationFilter['variantType'])
-        mf_des.append(f"变异类型包括{vt_desc}")
+    if mutationFilter['snvFilter']['exacStart'] or mutationFilter['snvFilter']['exadEnd'] :
+        mf_des.append(
+            f"ExAC数据库中记录的频率为从{mutationFilter['snvFilter']['exacStart']}到{mutationFilter['snvFilter']['exadEnd']}"
+        )
 
-    if mutationFilter['variantClass']:
+    if mutationFilter['snvFilter']['vabundStart']  or mutationFilter['snvFilter']['vabundEnd'] :
+        mf_des.append(
+            f"变异丰度的范围从{mutationFilter['snvFilter']['vabundStart']}到{mutationFilter['snvFilter']['vabundEnd']}"
+        )
+
+
+    if mutationFilter['snvFilter']['variantClass']:
         vc_desc = '，'.join(mutationFilter['variantClass'])
-        mf_des.append(f"变异分类包括{vc_desc}")
+        mf_des.append(f"SNV和InDel变异分类包括{vc_desc}")
 
-    if mutationFilter['searchStr']:
-        mf_des.append(f"指定的变异为{mutationFilter['searchStr']}")
+    if mutationFilter['snvFilter']['searchStr']:
+        mf_des.append(f"SNV和InDel指定的变异为{mutationFilter['searchStr']}")
 
     if mf_des:
         literal_description += construct_description('', '。\n', mf_des)
 
     return literal_description
+
+
 
 
 def get_certain_file_type_from_certain_depth_folders(root_dir: str,

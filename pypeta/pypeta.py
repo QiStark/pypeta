@@ -107,7 +107,17 @@ class Peta(object):
             raise FetchError(r.text)
         else:
             return r.text
-
+    
+    def get_all_studyID(self):
+        url = f'{self.host}/peta/study/getStudyDataSets?pageIndex=1&pageSize=99999&name='
+        r = requests.get(url,
+                         cookies=self.cookies,
+                         headers=self.headers)
+        r_json = json.loads(r.text)
+        res = pd.DataFrame.from_dict(r_json["data"]["list"])
+        return res
+        
+        
     def fetch_mutation_data(self):
         url = f'{self.host}/peta/mutation/getMAFData'
         return pd.read_json(self._fetch_data(url))
